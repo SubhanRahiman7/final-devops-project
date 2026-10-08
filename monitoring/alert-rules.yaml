@@ -1,0 +1,32 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: helpdesk-alerts
+  namespace: helpdesk
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: helpdesk
+      rules:
+        - alert: HelpDeskBackendDown
+          expr: absent(up{job="helpdesk-helpdesk-backend"} == 1)
+          for: 1m
+          labels: { severity: critical }
+          annotations:
+            summary: No healthy HelpDesk backend target is being scraped
+        - alert: HelpDeskHighErrorRate
+          expr: |
+            (sum(rate(http_requests_total{namespace="helpdesk", status="5xx"}[2m])) or vector(0))
+              / clamp_min(sum(rate(http_requests_total{namespace="helpdesk"}[2m])), 0.001) > 0.05
+          for: 2m
+          labels: { severity: warning }
+          annotations:
+            summary: More than 5 % of requests return a 5xx status
+        - alert: HelpDeskHighLatency
+          expr: |
+            histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="helpdesk"}[5m]))) > 1
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: p95 latency is above 1 second

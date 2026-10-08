@@ -1,0 +1,52 @@
+# Helm values for prometheus-community/kube-prometheus-stack (Prometheus + Grafana)
+#   helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+#     -n monitoring --create-namespace -f monitoring/prometheus-values.yaml
+# The release name "monitoring" matters: our ServiceMonitor carries the label release=monitoring.
+fullnameOverride: monitoring
+
+alertmanager:
+  enabled: false                 # not needed for this project (alerts are visible in Prometheus)
+
+prometheus:
+  prometheusSpec:
+    retention: 6h
+    resources:
+      requests: { cpu: 100m, memory: 400Mi }
+      limits: { memory: 900Mi }
+    # pick up ServiceMonitors / rules from every namespace, not only those with the Helm release label
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+
+grafana:
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 384Mi }
+  # LOCAL DEMO ONLY: anonymous access so that the dashboard can be opened without a login.
+  # Never enable this on a shared or internet-facing cluster.
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+      org_role: Admin
+    auth:
+      disable_login_form: true
+  # dashboards are loaded from ConfigMaps labelled grafana_dashboard=1 (see monitoring/dashboard-configmap.yaml)
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+
+kube-state-metrics:
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }
+
+prometheus-node-exporter:
+  resources:
+    requests: { cpu: 10m, memory: 16Mi }
+
+# control-plane scrapers are not reachable on minikube
+kubeEtcd: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeControllerManager: { enabled: false }
+kubeProxy: { enabled: false }
