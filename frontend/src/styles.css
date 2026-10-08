@@ -1,0 +1,67 @@
+:root {
+  --bg: #f4f6fb; --panel: #ffffff; --ink: #0f172a; --muted: #64748b; --line: #e2e8f0;
+  --side: #0f172a; --side-ink: #cbd5e1; --brand: #4f46e5;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+.shell { display: flex; min-height: 100vh; }
+.sidebar { width: 230px; background: var(--side); color: var(--side-ink); padding: 22px 16px; display: flex; flex-direction: column; flex-shrink: 0; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: #fff; margin-bottom: 28px; }
+.brand-mark { background: var(--brand); width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; }
+.nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin: 0 0 8px 10px; }
+.nav-item { display: block; padding: 9px 12px; border-radius: 8px; color: var(--side-ink); text-decoration: none; font-size: 14px; margin-bottom: 2px; }
+.nav-item:hover { background: #1e293b; }
+.nav-item.active { background: #1e293b; color: #fff; box-shadow: inset 3px 0 var(--brand); }
+.sidebar-foot { margin-top: auto; font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 8px; }
+.sidebar-foot .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+.content { flex: 1; padding: 28px 32px; min-width: 0; }
+.topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
+h1 { margin: 0 0 4px; font-size: 24px; } h2 { margin-top: 0; } h3 { margin: 0 0 12px; font-size: 15px; }
+.muted { color: var(--muted); } .small { font-size: 12px; } .cap { text-transform: capitalize; }
+.btn { background: var(--brand); color: #fff; border: 0; padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+.btn:hover { filter: brightness(1.08); } .btn:disabled { opacity: .6; cursor: default; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.link { background: none; border: 0; color: var(--brand); cursor: pointer; font-size: 13px; padding: 4px 6px; }
+.link.danger { color: #dc2626; }
+.banner { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; border-top: 4px solid; }
+.kpi.blue { border-top-color: #3b82f6; } .kpi.amber { border-top-color: #f59e0b; } .kpi.red { border-top-color: #ef4444; } .kpi.green { border-top-color: #22c55e; }
+.kpi-label { display: block; color: var(--muted); font-size: 13px; } .kpi-value { font-size: 28px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.side { display: grid; gap: 20px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: #fff; padding: 6px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; }
+.chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 11px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.subject { font-weight: 600; } .actions { white-space: nowrap; text-align: right; }
+.badge { display: inline-block; white-space: nowrap; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: capitalize; }
+.p-low { background: #e2e8f0; color: #334155; } .p-medium { background: #dbeafe; color: #1d4ed8; }
+.p-high { background: #ffedd5; color: #c2410c; } .p-urgent { background: #fee2e2; color: #b91c1c; }
+.s-open { background: #fef3c7; color: #92400e; } .s-in_progress { background: #e0e7ff; color: #3730a3; } .s-resolved { background: #dcfce7; color: #166534; }
+.empty { color: var(--muted); padding: 24px 0; text-align: center; }
+.feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; font-size: 14px; }
+.feed li { display: flex; gap: 10px; }
+.feed .dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.dot.s-open { background: #f59e0b; } .dot.s-in_progress { background: #6366f1; } .dot.s-resolved { background: #22c55e; }
+.pipeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.pipeline li { display: flex; align-items: center; gap: 10px; }
+.check { width: 20px; height: 20px; border-radius: 50%; background: #dcfce7; color: #166534; display: grid; place-items: center; font-size: 12px; }
+.overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .55); display: grid; place-items: center; padding: 16px; z-index: 10; }
+.modal { background: #fff; border-radius: 14px; padding: 24px; width: 100%; max-width: 480px; display: grid; gap: 12px; }
+.modal label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: #334155; }
+.modal input, .modal textarea, .modal select { font: inherit; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 400; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+.error { color: #b91c1c; margin: 0; font-size: 13px; }
+@media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px) {
+  .shell { flex-direction: column; }
+  .sidebar { width: 100%; flex-direction: row; align-items: center; gap: 12px; padding: 12px 16px; overflow-x: auto; }
+  .brand { margin: 0; } .nav-label, .sidebar-foot { display: none; } nav { display: flex; gap: 4px; }
+  .content { padding: 18px 16px; } .topbar { flex-direction: column; } .row { grid-template-columns: 1fr; }
+}

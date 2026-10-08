@@ -1,0 +1,25 @@
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # liveness / readiness target for Kubernetes
+    location = /healthz {
+        access_log off;
+        return 200 "ok\n";
+    }
+
+    # API calls go to the backend; the browser never needs to know its hostname
+    location /api/ {
+        proxy_pass ${BACKEND_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # single-page app: unknown paths fall back to index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
