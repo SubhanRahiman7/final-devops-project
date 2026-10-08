@@ -11,7 +11,9 @@ RUN npm run build
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 # pull in the latest Alpine security fixes (Trivy flags the unpatched base image), then drop root again
 USER root
-RUN apk upgrade --no-cache
+# CI passes a new value on every run so that this layer is never served from a stale build cache
+ARG SECURITY_REFRESH=local
+RUN echo "security refresh: ${SECURITY_REFRESH}" && apk upgrade --no-cache
 ENV BACKEND_URL=http://backend:8000
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html

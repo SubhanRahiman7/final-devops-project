@@ -109,7 +109,9 @@ jobs:
           load: true
           push: false
           tags: ${{ steps.meta.outputs.image }}:${{ github.sha }}
-          build-args: APP_VERSION=${{ github.sha }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+            SECURITY_REFRESH=${{ github.run_id }}
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,scope=${{ matrix.service }},mode=max
       - name: Trivy image scan (report in the run summary; fails on fixable HIGH/CRITICAL CVEs)
