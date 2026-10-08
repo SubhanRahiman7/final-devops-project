@@ -20,6 +20,7 @@ provider "aws" {
     ec2 = var.use_local_emulator ? var.emulator_endpoint : null
     eks = var.use_local_emulator ? var.emulator_endpoint : null
     iam = var.use_local_emulator ? var.emulator_endpoint : null
+    kms = var.use_local_emulator ? var.emulator_endpoint : null
     sts = var.use_local_emulator ? var.emulator_endpoint : null
   }
 }

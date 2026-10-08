@@ -50,9 +50,13 @@ variable "node_max_size" {
 }
 
 variable "cluster_public_access_cidrs" {
-  description = "Who may reach the public Kubernetes API endpoint. Restrict this to your own IP (x.x.x.x/32) for real use."
+  description = "Who may reach the public Kubernetes API endpoint, e.g. [\"203.0.113.10/32\"] (your own IP). Deliberately has no default: opening the API to 0.0.0.0/0 must be an explicit choice."
   type        = list(string)
-  default     = ["0.0.0.0/0"]
+
+  validation {
+    condition     = !contains(var.cluster_public_access_cidrs, "0.0.0.0/0")
+    error_message = "Do not expose the Kubernetes API to the whole internet (0.0.0.0/0); use your own IP as x.x.x.x/32."
+  }
 }
 
 # ---- local emulator (Moto) so that plan / apply / destroy can be rehearsed without a real AWS account ----

@@ -137,17 +137,38 @@ resource "aws_iam_role_policy_attachment" "node" {
   policy_arn = each.value
 }
 
+# ------------------------------------------------------------------ encryption key for Kubernetes Secrets
+resource "aws_kms_key" "eks" {
+  description             = "${local.name} - envelope encryption of Kubernetes Secrets"
+  enable_key_rotation     = true
+  deletion_window_in_days = 7
+}
+
+resource "aws_kms_alias" "eks" {
+  name          = "alias/${local.name}-secrets"
+  target_key_id = aws_kms_key.eks.key_id
+}
+
 # ------------------------------------------------------------------ EKS cluster and managed node group
 resource "aws_eks_cluster" "main" {
   name     = local.name
   version  = var.kubernetes_version
   role_arn = aws_iam_role.cluster.arn
 
+  # Kubernetes Secrets are encrypted at rest with our own KMS key
+  encryption_config {
+    resources = ["secrets"]
+    provider {
+      key_arn = aws_kms_key.eks.arn
+    }
+  }
+
   vpc_config {
     subnet_ids              = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
     endpoint_private_access = true
-    endpoint_public_access  = true
-    public_access_cidrs     = var.cluster_public_access_cidrs
+    #trivy:ignore:AWS-0040 the public endpoint is needed so kubectl and CI can reach the cluster; access is limited to the CIDRs in var.cluster_public_access_cidrs, which has no default and rejects 0.0.0.0/0
+    endpoint_public_access = true
+    public_access_cidrs    = var.cluster_public_access_cidrs
   }
 
   depends_on = [aws_iam_role_policy_attachment.cluster]
