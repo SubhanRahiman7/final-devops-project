@@ -1,0 +1,62 @@
+# Defaults - override with -f values-dev.yaml / values-prod.yaml or --set key=value
+nameOverride: ""
+
+backend:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/subhanrahiman7/helpdesk-backend
+    tag: ""                      # set by CI to the Git commit SHA
+    pullPolicy: IfNotPresent
+  port: 8000
+  seedDemoData: true
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 256Mi }
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 60
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/subhanrahiman7/helpdesk-frontend
+    tag: ""
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    requests: { cpu: 25m, memory: 32Mi }
+    limits: { cpu: 200m, memory: 96Mi }
+
+postgres:
+  image: postgres:16-alpine
+  database: helpdesk
+  username: helpdesk
+  existingSecret: ""             # name of a Secret holding POSTGRES_PASSWORD (recommended)
+  password: ""                   # used only when existingSecret is empty; random if left empty
+  persistence:
+    size: 1Gi
+    storageClass: ""
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 384Mi }
+
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: true
+  className: nginx
+  host: helpdesk.local
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+serviceMonitor:
+  enabled: false                 # needs the Prometheus Operator CRDs (kube-prometheus-stack)
+  interval: 15s
+  labels:
+    release: monitoring          # must match the Prometheus "serviceMonitorSelector"
+
+podDisruptionBudget:
+  enabled: true
