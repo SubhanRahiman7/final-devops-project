@@ -9,6 +9,9 @@ RUN npm run build
 
 # ---- stage 2: tiny Nginx runtime (non-root, listens on 8080) ----
 FROM nginxinc/nginx-unprivileged:1.27-alpine
+# pull in the latest Alpine security fixes (Trivy flags the unpatched base image), then drop root again
+USER root
+RUN apk upgrade --no-cache
 ENV BACKEND_URL=http://backend:8000
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
