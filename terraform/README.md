@@ -1,7 +1,7 @@
 # Terraform - AWS VPC + EKS
 
-Creates (22 resources): VPC, 2 public + 2 private subnets in two AZs, Internet gateway, NAT gateway, route tables,
-IAM roles for the cluster and the nodes, an EKS cluster and a managed node group.
+Creates (24 resources): VPC, 2 public + 2 private subnets in two AZs, Internet gateway, NAT gateway, route tables,
+IAM roles for the cluster and the nodes, a KMS key (encrypts Kubernetes Secrets), an EKS cluster and a managed node group.
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars    # edit; the real file is git-ignored
