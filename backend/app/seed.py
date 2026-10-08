@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.models import Ticket
@@ -16,8 +16,15 @@ DEMO_TICKETS = [
 
 
 def seed_demo_data(db: Session) -> int:
-    """Insert sample tickets, only when the table is empty."""
+    """Insert sample tickets, only when the table is empty.
+
+    Several replicas start at the same time; a PostgreSQL advisory lock (held until commit)
+    makes sure that only one of them seeds, instead of every replica inserting its own copy.
+    """
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(text("SELECT pg_advisory_xact_lock(2101)"))
     if db.scalar(select(func.count()).select_from(Ticket)):
+        db.rollback()  # releases the lock
         return 0
     for subject, description, status, priority, category, requester, assignee in DEMO_TICKETS:
         db.add(

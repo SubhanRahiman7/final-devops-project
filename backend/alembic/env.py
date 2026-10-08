@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 from alembic import context
 from app import config
@@ -19,6 +19,9 @@ def run_migrations_online() -> None:
     with engine.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
+            if connection.dialect.name == "postgresql":
+                # replicas start together: only one may migrate at a time
+                connection.execute(text("SELECT pg_advisory_xact_lock(2100)"))
             context.run_migrations()
 
 
