@@ -1,0 +1,10 @@
+# Local / dev cluster (minikube, kind): images are built locally and loaded into the cluster
+#   docker build -t helpdesk-backend:dev ./backend && docker build -t helpdesk-frontend:dev ./frontend
+#   minikube image load helpdesk-backend:dev helpdesk-frontend:dev
+backend:
+  image: { repository: helpdesk-backend, tag: dev, pullPolicy: IfNotPresent }
+  autoscaling: { minReplicas: 2, maxReplicas: 5 }
+frontend:
+  image: { repository: helpdesk-frontend, tag: dev, pullPolicy: IfNotPresent }
+ingress:
+  host: helpdesk.local

@@ -1,0 +1,30 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "helpdesk.fullname" . }}
+  labels:
+    {{- include "helpdesk.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /api               # longer prefix wins: API calls go to FastAPI
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "helpdesk.fullname" . }}-backend
+                port: { number: {{ .Values.backend.port }} }
+          - path: /                  # everything else is the React app
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "helpdesk.fullname" . }}-frontend
+                port: { number: 80 }
+{{- end }}

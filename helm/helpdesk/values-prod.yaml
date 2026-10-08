@@ -1,0 +1,17 @@
+# Production-like settings (e.g. EKS)
+backend:
+  replicaCount: 3
+  seedDemoData: false
+  resources:
+    requests: { cpu: 250m, memory: 256Mi }
+    limits: { cpu: "1", memory: 512Mi }
+  autoscaling: { minReplicas: 3, maxReplicas: 10, targetCPUUtilizationPercentage: 65 }
+frontend:
+  replicaCount: 3
+postgres:
+  existingSecret: helpdesk-db          # created out-of-band, never stored in Git
+  persistence: { size: 20Gi }
+ingress:
+  host: helpdesk.example.com
+serviceMonitor:
+  enabled: true

@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "helpdesk.fullname" . }}-backend
+  labels:
+    {{- include "helpdesk.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "helpdesk.selector" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+  ports:
+    - name: http
+      port: {{ .Values.backend.port }}
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helpdesk.fullname" . }}-backend
+  labels:
+    {{- include "helpdesk.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  {{- if not .Values.backend.autoscaling.enabled }}
+  replicas: {{ .Values.backend.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector:
+    matchLabels:
+      {{- include "helpdesk.selector" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "helpdesk.selector" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      initContainers:           # do not start migrations before PostgreSQL accepts connections
+        - name: wait-for-db
+          image: busybox:1.36
+          command: ["sh", "-c", "until nc -z {{ include "helpdesk.fullname" . }}-postgres 5432; do echo waiting for postgres; sleep 2; done"]
+          resources:
+            requests: { cpu: 10m, memory: 8Mi }
+            limits: { cpu: 50m, memory: 32Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+      containers:
+        - name: backend
+          image: {{ include "helpdesk.image" (dict "image" .Values.backend.image "Chart" .Chart) }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.port }}
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helpdesk.dbSecretName" . }}
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL     # $(DB_PASSWORD) is expanded by Kubernetes from the variable above
+              value: "postgresql+psycopg://{{ .Values.postgres.username }}:$(DB_PASSWORD)@{{ include "helpdesk.fullname" . }}-postgres:5432/{{ .Values.postgres.database }}"
+            - name: APP_ENV
+              value: {{ .Release.Namespace | quote }}
+            - name: APP_VERSION
+              value: {{ default .Chart.AppVersion .Values.backend.image.tag | quote }}
+            - name: SEED_DEMO_DATA
+              value: {{ .Values.backend.seedDemoData | quote }}
+          startupProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 3
+            failureThreshold: 40
+          readinessProbe:
+            httpGet: { path: /ready, port: http }
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- if .Values.backend.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "helpdesk.fullname" . }}-backend
+  labels:
+    {{- include "helpdesk.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "helpdesk.fullname" . }}-backend
+  minReplicas: {{ .Values.backend.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.backend.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.backend.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

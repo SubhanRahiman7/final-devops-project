@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "helpdesk.fullname" . }}-test
+  labels:
+    {{- include "helpdesk.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  restartPolicy: Never
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    seccompProfile: { type: RuntimeDefault }
+  containers:
+    - name: check
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          set -e
+          wget -q -O- http://{{ include "helpdesk.fullname" . }}-backend:{{ .Values.backend.port }}/ready
+          wget -q -O- http://{{ include "helpdesk.fullname" . }}-backend:{{ .Values.backend.port }}/api/tickets/stats
+          wget -q -O- http://{{ include "helpdesk.fullname" . }}-frontend/ | grep -qi helpdesk
+          wget -q -O- http://{{ include "helpdesk.fullname" . }}-frontend/api/tickets/stats
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities: { drop: ["ALL"] }

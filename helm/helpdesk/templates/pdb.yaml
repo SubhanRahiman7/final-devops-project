@@ -1,0 +1,14 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "helpdesk.fullname" . }}-backend
+  labels:
+    {{- include "helpdesk.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "helpdesk.selector" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+{{- end }}

@@ -1,0 +1,9 @@
+HelpDesk {{ .Chart.AppVersion }} installed in namespace {{ .Release.Namespace }} as release "{{ .Release.Name }}".
+
+  kubectl get pods,svc,ingress,hpa -n {{ .Release.Namespace }}
+{{- if .Values.ingress.enabled }}
+
+Open http://{{ .Values.ingress.host }}  (add "<ingress-ip>  {{ .Values.ingress.host }}" to /etc/hosts for local clusters)
+{{- end }}
+
+Run the smoke test:  helm test {{ .Release.Name }} -n {{ .Release.Namespace }}
