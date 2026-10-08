@@ -8,7 +8,7 @@ COPY src ./src
 RUN npm run build
 
 # ---- stage 2: tiny Nginx runtime (non-root, listens on 8080) ----
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 # pull in the latest Alpine security fixes (Trivy flags the unpatched base image), then drop root again
 USER root
 # CI passes a new value on every run so that this layer is never served from a stale build cache
