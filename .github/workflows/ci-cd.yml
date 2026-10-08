@@ -101,7 +101,7 @@ jobs:
       - name: Image name (registry path must be lower case)
         id: meta
         run: echo "image=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/helpdesk-${{ matrix.service }}" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
       - name: Build (tag = Git commit SHA)
         uses: docker/build-push-action@v6
         with:
