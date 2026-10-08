@@ -126,8 +126,17 @@ jobs:
             grep -E "Total:|Report Summary|alpine|debian|python-pkg|node-pkg|^$" trivy.txt | head -20 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          # the gate: fail on fixable HIGH/CRITICAL; the findings are also written as annotations
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image \
-            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --quiet "$IMAGE"
+            --severity HIGH,CRITICAL --ignore-unfixed --format json --quiet "$IMAGE" > trivy.json
+          python3 - <<'PY'
+          import json, sys
+          found = [v for r in json.load(open("trivy.json")).get("Results", []) for v in r.get("Vulnerabilities") or []]
+          for v in found[:15]:
+              print(f"::error title=Trivy {v['VulnerabilityID']}::{v['Severity']} {v['PkgName']} {v['InstalledVersion']} -> fixed in {v['FixedVersion']}")
+          print(f"Trivy: {len(found)} fixable HIGH/CRITICAL finding(s)")
+          sys.exit(1 if found else 0)
+          PY
       - name: Log in to GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v3
