@@ -133,6 +133,10 @@ Images in GitHub Container Registry, tagged with commit SHAs
 ![ghcr backend](docs/screenshots/22-ghcr-backend-sha-tags.png)
 ![ghcr frontend](docs/screenshots/23-ghcr-frontend-sha-tags.png)
 
+Commit history (conventional, descriptive messages):
+
+![git history](docs/screenshots/25-git-history.png)
+
 ## 6. Security scanning (Trivy)
 
 | Layer | Control | Where |
