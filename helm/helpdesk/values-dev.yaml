@@ -8,3 +8,5 @@ frontend:
   image: { repository: helpdesk-frontend, tag: dev, pullPolicy: IfNotPresent }
 ingress:
   host: helpdesk.local
+serviceMonitor:
+  enabled: true            # kube-prometheus-stack is installed in this cluster (see monitoring/)
