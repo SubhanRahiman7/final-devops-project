@@ -122,7 +122,7 @@ secret-scan (Gitleaks) ---------+
   curl smoke test through the frontend.
 * Dependabot (`.github/dependabot.yml`) keeps pip, npm, Docker and Actions dependencies current.
 
-Latest run on `main` - all jobs green: [run #9](https://github.com/SubhanRahiman7/final-devops-project/actions/runs/37806628991)
+Latest run on `main` - all jobs green: [run #14](https://github.com/SubhanRahiman7/final-devops-project/actions/runs/37811272080)
 
 ![run](docs/screenshots/19-github-actions-run.png)
 
@@ -149,7 +149,11 @@ Commit history (conventional, descriptive messages):
 **What Trivy found and what it means.** Scanning the unpatched `nginx-unprivileged:1.27-alpine` base image that the frontend is built on reported **42 HIGH/CRITICAL
 vulnerabilities with an available fix**, all in operating-system packages - for example
 CVE-2026-31789 (CRITICAL) in `libcrypto3` 3.3.3-r0, fixed in 3.3.7-r0. They were not in the application code: the Alpine base had been published before those fixes. The fix is one line in the Dockerfile (`apk upgrade --no-cache`); the rescanned image has
-**0** findings, and so does the backend image. The IaC scan found two real Terraform issues - EKS secrets were not encrypted
+**0** findings, and so does the backend image. The gate also did its job in CI: after I had pushed the first fix, three runs on
+`main` went **red** at the frontend Trivy step (the vulnerability database had gained newer fixes than the Alpine 3.21 mirror
+that the old base image relies on), so no image was published for those commits. I moved the frontend to the current
+`nginx-unprivileged:1.31-alpine` base (1 fixable finding left, removed by `apk upgrade`), made the pipeline print every
+finding as an annotation, and run #14 is green end to end. The IaC scan found two real Terraform issues - EKS secrets were not encrypted
 (AWS-0039) and the API endpoint defaulted to `0.0.0.0/0` (AWS-0041) - fixed with a KMS key and a variable that has no
 default and rejects `0.0.0.0/0`. A clean scan only means *no known fixable* HIGH/CRITICAL CVEs at scan time; it is one
 control, not a guarantee. (`--ignore-unfixed` is used so that findings nobody can fix yet do not block releases.)
