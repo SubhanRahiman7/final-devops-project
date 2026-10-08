@@ -1,0 +1,40 @@
+# LAB 1 - broken image. Symptom to investigate: ErrImagePull / ImagePullBackOff.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: helpdesk-lab
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab-web
+  namespace: helpdesk-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: lab-web }
+  template:
+    metadata:
+      labels: { app: lab-web }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: web
+          image: nginxinc/nginx-unprivileged:1.27-alpine-does-not-exist   # <-- the fault: this tag was never published
+          ports:
+            - containerPort: 8080
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 100m, memory: 64Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}
