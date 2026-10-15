@@ -27,4 +27,6 @@ kubectl -n "$NS" rollout status deploy/helpdesk-helpdesk-frontend
 echo "== running now"
 helm list -n "$NS"
 kubectl -n "$NS" get deploy -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,IMAGE:.spec.template.spec.containers[0].image
-echo "Reload the browser."
+# the rollout replaced the pods that the port-forwards were attached to: open them again
+"$(dirname "$0")/demo-up.sh" > /dev/null 2>&1 || true
+echo "Reload the browser: http://localhost:3000"
